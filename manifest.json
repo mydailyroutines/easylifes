@@ -1,26 +1,14 @@
 {
-  "name": "MyRoutine \u2014 Personal Routine & Health Tracker",
+  "name": "MyRoutine",
   "short_name": "MyRoutine",
-  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4fbff",
   "theme_color": "#168dcc",
-  "description": "Medicines, health, water, routines and appointments.",
-  "prefer_related_applications": false,
+  "description": "Personal routine, BP, medicine, water and appointment tracker",
   "icons": [
-    {
-      "src": "./icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "./icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    {"src":"./icons/icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"./icons/icon-512.png","sizes":"512x512","type":"image/png"}
   ]
 }

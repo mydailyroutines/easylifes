@@ -5,4 +5,14 @@
 <div class="head"><div><h3>Today's routine</h3><small>Tap ✓ when finished</small></div><button id="addRoutine">+ Add</button></div><div id="tasks"></div>
 <div class="head"><h3>Quick actions</h3></div><div class="quick"><button data-action="medicine">💊<b>Medicine</b><small>Add reminder</small></button><button data-action="bp">🩺<b>BP</b><small>Record / reminder</small></button><button data-action="water">💧<b>Water</b><small>Add water</small></button><button data-action="appointment">📅<b>Appointment</b><small>Schedule</small></button></div>
 <nav><button class="active">⌂<small>Home</small></button><button data-action="bp">♡<small>Health</small></button><button id="add">＋<small>Add</small></button><button data-action="appointment">□<small>Calendar</small></button><button id="settings">⚙<small>Settings</small></button></nav></div>
-<div class="backdrop" id="backdrop"><div class="modal"><button class="close" id="close">×</button><div id="modal"></div></div></div><div class="toast" id="toast"></div><script src="./app.js"></script></body></html>
+<div class="backdrop" id="backdrop"><div class="modal"><button class="close" id="close">×</button><div id="modal"></div></div></div><div class="toast" id="toast"></div><script src="./app.js"></script>
+<section id="myroutineToday" style="margin:18px 0;padding:16px;border-radius:16px;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+  <h3>📋 Today's Routine</h3>
+  <div id="todayRoutineList">No reminders scheduled for today.</div>
+</section>
+<section id="myroutineInstall" style="margin:18px 0;padding:16px;border-radius:16px;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+  <button id="myInstallBtn" type="button">📱 Install MyRoutine</button>
+  <button id="myNotifyBtn" type="button">🔔 Enable Notifications</button>
+  <div id="myStatus" style="margin-top:8px"></div>
+</section>
+</body></html>

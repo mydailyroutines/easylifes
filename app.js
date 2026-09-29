@@ -65,3 +65,78 @@ document.addEventListener("click",e=>{let b=e.target.closest("[data-action]");if
 let deferred=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;Q("installBanner").hidden=false});Q("installBtn").onclick=async()=>{if(deferred){deferred.prompt();await deferred.userChoice;deferred=null;Q("installBanner").hidden=true}else toast("Chrome menu ⋮ → Install app / Add to Home screen")};Q("hideInstall").onclick=()=>Q("installBanner").hidden=true;addEventListener("appinstalled",()=>{Q("installBanner").hidden=true;toast("MyRoutine installed 📱")});
 if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
 render();scheduleTick();setInterval(scheduleTick,20000);document.addEventListener("visibilitychange",scheduleTick);addEventListener("focus",scheduleTick);
+
+
+(function(){
+  let deferredPrompt=null;
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function allData(){
+    const vals=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      try{ const v=JSON.parse(localStorage.getItem(k)); if(v) vals.push(v); }catch(e){}
+    }
+    return vals;
+  }
+  function collect(){
+    const out=[];
+    const walk=x=>{
+      if(!x||typeof x!=="object")return;
+      if(Array.isArray(x)){x.forEach(walk);return;}
+      const time=x.time||x.reminderTime||x.reminder_time||x.scheduledTime;
+      const title=x.title||x.name||x.label||x.medicine||x.activity||x.type;
+      if(time&&title) out.push({title,time,days:x.days||x.repeatDays||x.weekdays||x.repeat||"daily",enabled:x.enabled!==false&&x.active!==false});
+      Object.values(x).forEach(walk);
+    };
+    allData().forEach(walk); return out;
+  }
+  function tm(s){
+    const m=String(s).match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i); if(!m)return null;
+    let h=+m[1],n=+m[2],a=m[3];
+    if(a){a=a.toUpperCase();if(a==="PM"&&h<12)h+=12;if(a==="AM"&&h===12)h=0}
+    return h<24&&n<60?{h,n}:null;
+  }
+  function today(days){
+    if(!days||String(days).toLowerCase()==="daily"||String(days).toLowerCase()==="every day")return true;
+    const d=["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
+    return String(days).toLowerCase().includes(d);
+  }
+  function render(){
+    const el=document.getElementById("todayRoutineList"); if(!el)return;
+    const rs=collect().filter(r=>r.enabled&&tm(r.time)&&today(r.days));
+    el.innerHTML=rs.length?rs.map(r=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee"><span>🔔 ${esc(r.title)}</span><b>${esc(r.time)}</b></div>`).join(""):"No reminders scheduled for today.";
+  }
+  async function enableNotify(){
+    if(!("Notification"in window)){setStatus("This browser does not support notifications.");return}
+    const p=await Notification.requestPermission();
+    setStatus(p==="granted"?"🔔 Notifications enabled.":"🔕 Notifications are blocked.");
+  }
+  function setStatus(s){const e=document.getElementById("myStatus");if(e)e.textContent=s}
+  function check(){
+    const now=new Date(), keyday=now.toISOString().slice(0,10);
+    collect().filter(r=>r.enabled&&tm(r.time)&&today(r.days)).forEach(r=>{
+      const p=tm(r.time); if(!p||p.h!==now.getHours()||p.n!==now.getMinutes())return;
+      const k="mr-notified-"+keyday+"-"+p.h+"-"+p.n+"-"+r.title;
+      if(localStorage.getItem(k))return;
+      localStorage.setItem(k,"1");
+      if(Notification.permission==="granted"){
+        if(navigator.serviceWorker) navigator.serviceWorker.ready.then(reg=>reg.showNotification("🔔 MyRoutine Reminder",{body:"Time for: "+r.title,tag:k})).catch(()=>new Notification("🔔 MyRoutine Reminder",{body:"Time for: "+r.title}));
+        else new Notification("🔔 MyRoutine Reminder",{body:"Time for: "+r.title});
+      }
+    });
+  }
+  window.addEventListener("beforeinstallprompt",e=>{
+    e.preventDefault(); deferredPrompt=e;
+    const b=document.getElementById("myInstallBtn"); if(b)b.textContent="📱 Install App";
+  });
+  window.addEventListener("appinstalled",()=>setStatus("✅ MyRoutine installed."));
+  document.addEventListener("DOMContentLoaded",()=>{
+    document.getElementById("myNotifyBtn")?.addEventListener("click",enableNotify);
+    document.getElementById("myInstallBtn")?.addEventListener("click",async()=>{
+      if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}
+      else setStatus("Chrome menu ⋮ → Install app (if available).");
+    });
+    render(); check(); setInterval(check,15000); setInterval(render,30000);
+  });
+  if("serviceWorker"in navigator) navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(()=>{});
+})();
